@@ -1,0 +1,202 @@
+Creacion desde 0 Backend RAG
+-----------------------------
+
+
+
+Activacion entorno y librerias
+--------------------------
+En la carpeta del Backend ejecutamos el comando:
+PS C:\Users\jaime\Escritorio\LLM\48_1_1_RAG> poetry new v1-162-part1
+Created package v1_162_part1 in v1-162-part1
+
+
+Si quieres reflejar en requirements lo instalado en poetry debes hacer:
+poetry export -f requirements.txt --output requirements.txt
+
+Para crear el entorno con poetry si ya esta definido:
+-----------------------------------------------------
+poetry shell te crea el entorno y te lo activa
+Te llevas el archivo .toml y el poetryu.lock al directorio del entorno virtual y los pegas.
+poetry install
+
+
+
+
+
+VER PROCESOS desde Powershell y eliminarlos
+-------------------------------------------
+Get-Process | Out-GridView
+taskkill /F /PID <ID_DEL_PROCESO>
+
+
+Despues de ver eso y copiar el .toml y poetry.lock en mi directorio
+Ejecutamos langchain app new .
+
+Copiamos los documentos en packages
+
+Hacemos las instrucciones de zzz-nbv1-162-part1 para añdir la slibrerias a peotry. Antes de instalar unstructured_docs poner en el archivo .toml python = ">=3.11,<3.12"
+
+Instalamos visual studio instaler para seguir las instrucciones de instaalr pgvectors
+https://visualstudio.microsoft.com/es/vs/
+
+Despues de moidifciar e instalar la extension de C++
+En una terminal de powershell en vscode ejecutamos:
+call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
+set "PGROOT=C:\Program Files\PostgreSQL\16"  # Asegúrate de que esta sea la ruta correcta a tu instalación de PostgreSQL
+cd $env:TEMP
+git clone --branch v0.7.4 https://github.com/pgvector/pgvector.git
+cd pgvector
+
+
+Aparatemente esto no funciona cuando eejcutamos nmake /F Makefile.win
+ y luego nmake /F Makefile.win install
+
+Por ello lo ejeuctamos desde la developer Command Prompt
+
+
+
+Despues de instalar pgvector. Pasamos a activar postgreSQL y a vectorizar los documentos con pgvector
+Para ejecutarlo hemos intaaldo Popler. Descargas el zip y luego
+
+
+Ahora vamos a ejecutar rag_and_oad_process.py donde hemos cambiado las palabra spor la svariables del entorno .env y ademas hemos dado permisos al usuario creado para la base de datos:
+GRANT ALL PRIVILEGES ON SCHEMA public TO user48;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO user48;
+
+Verificar con \dn+
+
+
+Si no funciona dale todos los permiso posibles:Ç
+
+postgres=# GRANT ALL PRIVILEGES ON DATABASE database164 TO user48;
+GRANT
+postgres=# GRANT ALL PRIVILEGES ON SCHEMA public TO user48;
+GRANT
+postgres=# GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO user48;
+GRANT
+postgres=# GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO user48;
+GRANT
+postgres=# GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO user48;
+GRANT
+postgres=# ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO user48;
+ALTER DEFAULT PRIVILEGES
+postgres=# ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO user48;
+ALTER DEFAULT PRIVILEGES
+postgres=# ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO user48;
+ALTER DEFAULT PRIVILEGES
+
+Despues de darle privilegios Super al usuario he podido crear esas tablas.
+ALTER ROLE user48 WITH SUPERUSER;
+ALTER ROLE user48 WITH CREATEDB CREATEROLE;
+GRANT ALL PRIVILEGES ON DATABASE database164 TO user48;
+GRANT ALL PRIVILEGES ON SCHEMA public TO user48;
+\du user48
+
+Ahora en tables deberian aparecer 2 tablas. Una con una fila que refleja el nombre de la coleccion y su dientificador y la otra es la base de datos vectorial
+
+
+
+Añadimos el add_routes con la cadena final en server.py
+
+
+poetry add fastapi
+poetry add "uvicorn[standard]"
+
+
+Ekjecutamos uvicorn app.server:app --reload
+
+
+
+
+
+EJECUTAMOS PARTE 2 FRONTEND
+------------------------------
+Pasamos los cambios a la nueva carpeta
+Lo de siempre. Cambiamos archivos de la aprte 1 a los que deben ser porque se hcieiron cambios, poetry install y poetry shell. Luego instalamos con npm ci el FRONTEND
+Solo es la aprte del Frontend
+
+
+PARTE 3
+-------
+Frontend mejorado con Javascript. 
+
+REDORTAORIO: Hay que modificar los archivos rag.py (Los 2 y poner las variables ddel entorno (LAs de .env)) y crear el srchivo .env con las claves respectivas 
+Realmente no hace falta pero si cmabiamos de base de datos en .env ya no funcionara
+
+Ir a http://127.0.0.1:8000/rag/playground/ para probar el Backend
+Ir a http://localhost:3000/ para probar todo
+
+
+
+PARTE 4
+--------
+En vez de iniciar la UI nosotros, vamos a iniciarla/actualizarla con un solo boton
+
+Hemos teenido problemas de ejecutar rag_data_loader porque no se eejcutaba con el python/entorno correcto:
+PS C:\Users\jaime\Escritorio\LLM\48_RAG_1_4\v1-165-part4\rag-data-loader> ls
+
+
+    Directorio: C:\Users\jaime\Escritorio\LLM\48_RAG_1_4\v1-165-part4\rag-data-loader
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----        06/10/2024     17:28           1626 rag_load_and_process.py
+
+
+PS C:\Users\jaime\Escritorio\LLM\48_RAG_1_4\v1-165-part4\rag-data-loader> python
+Python 3.11.4 (tags/v3.11.4:d2340ef, Jun  7 2023, 05:45:37) [MSC v.1934 64 bit (AMD64)] on win32
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import sys
+>>> print("Python executable:", sys.executable)
+Python executable: C:\Program Files\Python311\python.exe
+>>> exit()
+
+Vamos a cmbairlo!
+
+Hemos tenido que modificar donde se ejcutaba el archivo rag_data_loader porque se ejcutaba en otro entorno de python (En el global creo)
+Para ello hemos modificado la direccion y que se ejeucte el .exe del python del entorno virtual creado. Asi nod a errores de que no contiene esas librerias:
+@app.post("/load-and-process-pdfs")
+async def load_and_process_pdfs():
+    try:
+        # Ruta al ejecutable de Python del entorno de Poetry
+        python_executable = "C:/Users/jaime/AppData/Local/pypoetry/Cache/virtualenvs/164-rag-for-pdfs-v2-VKsX85oJ-py3.11/Scripts/python.exe"
+        
+        # Ruta al script
+        script_path = "./rag-data-loader/rag_load_and_process.py"
+
+        # Ejecutar el script utilizando el Python del entorno de Poetry
+        result = subprocess.run([python_executable, script_path], check=True, capture_output=True, text=True)
+        
+        # Si todo va bien, devolvemos el mensaje
+        return {"message": "PDFs loaded and processed successfully", "output": result.stdout}
+    
+    except subprocess.CalledProcessError as e:
+        # En caso de error, capturamos el stderr y lo devolvemos
+        return {"error": "Failed to execute script", "details": e.stderr}
+
+
+Hemos hecho algun cabio en rag_and_load_process para que se ejeucte en el entorno virtual correcto. Por eso lo hemos añadido a .env
+
+PARTE 5
+---------
+Lo de siempre.
+
+Con poetry install, poetry shell y ejeuctar  uvicorn app.server:app --reload
+
+Y kuego npm ci y npm start
+
+
+
+
+Con Multiquery hacemos una pregunta pero en realidad el RAG hace mas preguntas similares para recibir la mayor informacion posible
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,149 @@
+Instalacion Pyenv
+----------------
+- Tener instalado git. Luego ejecutar: git clone https://github.com/pyenv-win/pyenv-win.git $HOME\.pyenv
+Verificar que esta cd $HOME\.pyenv luego ls
+Agregamos rutas: [System.Environment]::SetEnvironmentVariable("PATH", "$HOME\.pyenv\pyenv-win\bin;$HOME\.pyenv\pyenv-win\shims;$env:Path", "User")
+pyenv --version
+Cerrar o cerrar antes de version.
+
+En vscode terminal pyenv install 3.11.4
+
+
+Activacion Entorno virtual (Hya mas notas)
+---------------------------
+& C:\Users\jaime\Escritorio\LLM\36_2_todo-app-fastapi-vercel-fullstack\env_36_2\Scripts\Activate.ps1
+
+pip install -r requirements.txt (O algo asi era, si da error uvloop ponerlo como comentario que sirve para mejorar el rendimiento de la app)
+
+
+Con 1 entorno backend es suifciente, luego frontend instalamos package.json en node_modules
+-----------------
+ Tendremos un entorno virtual para el backend con sus requirements pero para el forntend no es necesario. 
+ Es ponerse en otra terminal y ejecutar dentro de la app de frontend npm install apra que instale el package.json 
+
+Ejecutar el backend
+----------
+Activar entorno: & C:\Users\jaime\Escritorio\LLM\36_2_todo-app-fastapi-vercel-fullstack\env_36_2\Scripts\Activate.ps1
+cd .\36_2_todo-app-fastapi-vercel-fullstack\ cd .\001-fastapi-backend\
+uvicorn main:app --reload
+
+Ejecutar el frontend
+-------------------
+Se añadio una NEXT_PUBLIC_API_URL como el localhost del servidor backend para conectar el backend y luego el forntend
+cd C:\Users\jaime\Escritorio\LLM\36_2_todo-app-fastapi-vercel-fullstack\full-stack-fastapi-nextjs\todo-app Probar el 2 o el 3
+ir al directorio correspondiente al frontend, npm install si hiciera falta
+npm run dev
+
+
+Descargar Chocolatey 
+----------------------
+Para crear bases de datos y tener acceso a PostgreSql
+Instalar en Powershell como administrador
+choco install postgresql
+
+
+Seguir el script con nombre zzz-nb1014-todo-app-fastapi-vercel-fullstack.ipynb
+
+
+Dar acceso a usuario nnuevo base de datos
+--------------------------------------------
+Siguiendo los paos del notebook con nombre raro, creamos la base de datos y creamos usuario y contraseña para cambiar en env
+Despues hay que dar privilegios desde psql al usuario que le hemos puesto nombre (yo soy postgres pero vamos a crear otro usuario)
+
+Habiendo creado los pasos anteriores del notebook ejecutamos esto para dar permisos:
+
+psql -U postgres
+
+\c database082724
+
+
+database082724=# GRANT ALL PRIVILEGES ON SCHEMA public TO user082724;
+GRANT
+database082724=# GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO user082724;
+GRANT
+database082724=# ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO user082724;
+ALTER DEFAULT PRIVILEGES
+database082724=# SELECT * FROM information_schema.role_table_grants WHERE grantee = 'user082724';
+ grantor  |  grantee   | table_catalog  | table_schema | table_name | privilege_type | is_grantable | with_hierarchy
+----------+------------+----------------+--------------+------------+----------------+--------------+----------------
+ postgres | user082724 | database082724 | public       | test_table | INSERT         | NO           | NO
+ postgres | user082724 | database082724 | public       | test_table | SELECT         | NO           | YES
+ postgres | user082724 | database082724 | public       | test_table | UPDATE         | NO           | NO
+ postgres | user082724 | database082724 | public       | test_table | DELETE         | NO           | NO
+ postgres | user082724 | database082724 | public       | test_table | TRUNCATE       | NO           | NO
+ postgres | user082724 | database082724 | public       | test_table | REFERENCES     | NO           | NO
+ postgres | user082724 | database082724 | public       | test_table | TRIGGER        | NO           | NO
+(7 rows)
+
+
+database082724=# SELECT grantee, privilege_type 
+database082724-# FROM information_schema.role_table_grants 
+database082724-# WHERE table_schema = 'public' AND grantee = 'user082724';
+  grantee   | privilege_type
+------------+----------------
+ user082724 | INSERT
+ user082724 | SELECT
+ user082724 | UPDATE
+ user082724 | DELETE
+ user082724 | TRUNCATE
+ user082724 | REFERENCES
+ user082724 | TRIGGER
+(7 rows)
+
+
+
+Despues es irse a otra terminal al backend y ejecutar alembic upgrade head alembic upgrade head
+
+Ejecutamos en psql \dt y aparecera:
+database082724=# \dt
+               List of relations
+ Schema |      Name       | Type  |   Owner
+--------+-----------------+-------+------------
+ public | alembic_version | table | user082724
+ public | test_table      | table | postgres
+ public | todos           | table | user082724
+(3 rows)
+
+database082724=# \d todos
+                              Table "public.todos"
+  Column   |  Type   | Collation | Nullable |              Default
+-----------+---------+-----------+----------+-----------------------------------
+ id        | bigint  |           | not null | nextval('todos_id_seq'::regclass)
+ name      | text    |           |          |
+ completed | boolean |           | not null | false
+Indexes:
+    "todos_pkey" PRIMARY KEY, btree (id)
+
+
+CONSEJO
+--------
+Hay que seguir todos los pasos que dice el Notebook y aunque este el archivo leerlo porque igual hay que modificar algo del archivo que parece que esta creado
+
+
+
+En Render
+-----------
+Se ha creado la base de datos PostgreSQL desde render (La del local esta bien pero es para local, no sirve).
+Una vez creada se copian las claves y al crear el New Web Service añadimo en Environments Variables (DATABASE_URL que es la external URL, DB_USER, DB_NAME y DB_PASSWORD) Nos lo da todo Render
+ATENCION: Hostname no solo es el nombre interno que da Render tambien hay que añadir lo que ponga en external Database Url al final por ejemplo dpg-crtuu55ds78s73f9ipag-a.frankfurt-postgres.render.com
+
+Hemos quitado pywin y otra libreria se quito al prinicpio del todo uvook o algo asi apra el renimiento de la web, noe ran importantes
+Quito pywinpty porque Render esta hecho para entornos Linux y el mio es Windows.
+
+Todas las avriables que metas en config.py tienen que estar en Variables de Entorno en Environment para que se relice el despliegue en Render
+
+Ademas llegamos a tener un problema donde el get y post los hacia para la direccion dominio.com//todos entonces tuvimos que hacer el cambio en todos.py apra que funcionara y pusiera /todos
+Se realizo el cambio en AddToDo y fetchTodos
+
+
+Solucion vercel
+---------------
+Funciona de momento sin hacer cambiso notables, es el servidor Backend donde estara el problema.
+Darse cuenta de que el codigo del backend tambien esta dentro del Front end para hacer los get, post, put, delete
+
+
+
+Dudas Resueltas
+------
+Creo que como postrgesql no se instalo no se conecta desde el local a la base de datos, pero si desde Render porque la base de datos esta ahi.
+Reosoluciom: Si se descargo por eso tienes psql

@@ -1,0 +1,6 @@
+Para borrar todos los elementos de una carpeta
+Remove-Item * -Recurse -Force -ErrorAction SilentlyContinue
+
+git status ayuda para saber en que rama estamos
+git checkout main para ir a la rama
+git reset si hemos hehco muchos commits

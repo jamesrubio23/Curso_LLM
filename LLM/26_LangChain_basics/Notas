@@ -1,0 +1,11 @@
+Instalación de Jupyter kernel para utilizar Notebooks?
+
+Una vez creado el enotrno con poetry install
+Puedes ejeuctar poetry shell apra ver si esta y luego:
+- python -m ipykernel install --user --name=b401-poetry
+- Cierra vscode Ahora tienes guardado el jupyter kernel y podras utilizar jupyter notebooks. Lo unico que habra que borrar estos enrtornos virtuales cuando los dejemos de utilizar
+
+
+- para eliminar el entorno virtual, a pesar de que no deberia instalarse jupyter notebook. He ejecutado  poetry add jupyter. Despues de eso tenemos jupyter y podemos ver los kernels con jupyter kernelspec list y despues podemos eliminar el entorno copiando la ruta y escribiendo:
+Remove-Item -Recurse -Force C:\Users\jaime\AppData\Roaming\jupyter\kernels\b401-poetry
+Volver a ejuctar jupyter kernelspec list para ver que ya no esta

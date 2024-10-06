@@ -1,0 +1,282 @@
+Activacion entorno y librerias
+--------------------------
+En la carpeta del Backend ejecutamos los 2 comandos
+python -m venv env_36_3
+.\env_36_3\Scripts\activate
+
+
+RECORDATORIO: Igual hay que quitar las bibliotecas que siempre dan problemas. (Uvloop, pyenv-win o pywinpty). Tambien habra que poner las librerias gunicorn y uvicorn[standard]
+
+
+Para instalar las dependicas del Backend cuando se genera el package-lock.json es para entornos de Integracion Continua o Producción (CI y CD)
+Así no perdemos tiempo instlanado desde node_modules y lo elimina. Como estan preinstalados no habra que volver a instalarlos.
+Hacemos  npm audit fix de 2 vulnerabilidades faciles de modificar y la high vulnerabilidad la dejamos (Es la version 13 a la 14 de Next.js)
+
+
+
+AWS
+---------
+Tras crear el Bucket en AWS, crear la politica y el usuario. Asignamos la politica al usuario y el Bucket
+
+Env.
+-------
+Creamos archivo .env con las credenciales de AWS y las de la base de datos (Abajo seguimos con el mismo usuario y contraseña, solo ca,bia el nombre de la abse de datos)
+
+PostgreSQL (Sobraria el darle acceso y crear el ussuario ya que lo hacemos leugo)
+----------
+Luego vamos a la base de datos como se menciona en el Notebook y ejecutamos en psql:
+psql -U postgres
+postgres=# CREATE DATABASE mypdfdatabase;
+CREATE DATABASE
+postgres=# GRANT ALL PRIVILEGES ON DATABASE mypdfdatabase TO user082724;
+GRANT
+postgres=# GRANT ALL PRIVILEGES ON SCHEMA public TO user082724;
+GRANT
+postgres=# \q
+
+Alembic Backend (Creacion base de Datos en PGADMIN)
+----------------
+En el archivo alembic.ini cambiamos la linea 63 por sqlalchemy.url = postgresql://user082724:pass082724@localhost/database082724 
+Escribir usuario, contraseña, localhost y base de datos correcta
+
+Despues del cambio en la terminal del backend ejecutamos alembic upgrade head
+Ahora nuestra base de datos se ha añadido al servidor PostgreSQL 16 (Si nos fijamos hay 3 bases de datos, postrgres que la cree, la de la app aanterior 
+y la nueva que es mypdfdatabase)
+
+Ejecutar Backend
+-----------------
+Revisando los archivos que dice el notebook de revisar:config.py (Ver que las credenciales estan en .env) y main.py esta creado podemos ejecutar 
+uvicorn main:app --reload
+
+Alembic
+---------
+Modificamos Alembic/env.py y añadimos 
+# from dotenv import load_dotenv
+# load_dotenv()
+
+Vemos que en la linea 13 esta:
+# import os
+# config.set_main_option("sqlalchemy.url", f"postgresql://{os.environ['DATABASE_USER']}:@{os.environ['DATABASE_HOST']}:{os.environ['DATABASE_PORT']}/{os.environ['DATABASE_NAME']}")
+
+Creamos la tabla pds dese la terminal
+alembic revision -m "create pdfs table"
+
+Una vez ejecutado se creara el archivo scripts.py.mako dodne hay que cambiar las funciones upgrade y downgrade:
+# def upgrade():
+#     op.create_table(
+#         'pdfs',
+#         sa.Column('id', sa.BigInteger, primary_key=True),
+#         sa.Column('name', sa.Text, nullable=False),
+#         sa.Column('file', sa.Text, nullable=False),
+#         sa.Column('selected', sa.Boolean, nullable=False, default=False)
+#     )
+
+# def downgrade():
+#     op.drop_table('pdfs')
+
+
+
+Creamos Usuario con privilegios y contraseña
+-----------------------------------------------
+
+Creamos el usuario para darle acceso a la base de datosS C:\Users\jaime\Escritorio\LLM> psql -U postgres -d mypdfdatabase
+psql (16.4)
+WARNING: Console code page (850) differs from Windows code page (1252)
+         8-bit characters might not work correctly. See psql reference
+         page "Notes for Windows users" for details.
+Type "help" for help.
+
+mypdfdatabase=# CREATE USER user52 WITH PASSWORD 'pass52';
+CREATE ROLE
+mypdfdatabase=# GRANT ALL PRIVILEGES ON DATABASE mypdfdatabase TO user52;
+GRANT
+mypdfdatabase=# \q
+
+
+Modificar linea en Alembic.ini
+-----------------------------
+Alembic es una herramienta para modificar bases de datos ya creadas
+qlalchemy.url = postgresql://user52:pass52@localhost/mypdfdatabase
+Editamos .env a su usuario y contraseña correctos
+
+Si todo sale bien deberiamos pdoer ejeuctar alembic upgrade head desde el directorio del backend. Sino hacer esto en la terminal de Postgresql:
+psql -U postgres -d mypdfdatabase
+GRANT ALL PRIVILEGES ON TABLE alembic_version TO user52;
+GRANT ALL PRIVILEGES ON DATABASE mypdfdatabase TO user52;
+ Y volver a ejecutar alembic upgrade head
+
+
+Definir schemas, models y Database
+---------------
+Viene hecho. Database es un pcoo diferente pero hace lo mismo 
+
+
+Por que no funcionaba el pdfs/upload apra hacer la siguiente peticion desde Cmd?
+----------------------------------------------------------------------------------
+C:\Users\jaime>curl -X POST -F "file=@C:\Users\jaime\Downloads\FASTAPI.pdf" http://127.0.0.1:8000/pdfs/upload
+{"id":1,"name":"FASTAPI.pdf","selected":false,"file":"https://jamesrubio23pdfapp.s3.amazonaws.com/e6357add-e57a-4c2c-bd62-872ecebfde79-FASTAPI.pdf"}
+
+
+Habia que dar permisos al user52 en pdfs_id_seq
+
+PS C:\Users\jaime\Escritorio\LLM> psql -U postgres
+psql (16.4)
+WARNING: Console code page (850) differs from Windows code page (1252)
+         8-bit characters might not work correctly. See psql reference
+         page "Notes for Windows users" for details.
+Type "help" for help.
+
+postgres=# \c mypdfdatabase
+You are now connected to database "mypdfdatabase" as user "postgres".
+mypdfdatabase=# GRANT USAGE, SELECT ON SEQUENCE pdfs_id_seq TO user52;
+GRANT
+mypdfdatabase=# GRANT ALL ON SEQUENCE pdfs_id_seq TO user52;
+GRANT
+mypdfdatabase=# \dpS pdfs_id_seq
+                                   Access privileges
+ Schema |    Name     |   Type   |   Access privileges   | Column privileges | Policies
+--------+-------------+----------+-----------------------+-------------------+----------
+ public | pdfs_id_seq | sequence | postgres=rwU/postgres+|                   |
+        |             |          | user52=rwU/postgres   |                   |
+(1 row)
+
+
+mypdfdatabase=# \q
+
+
+Ya funciona el Backend en el local!!!
+
+
+
+
+Pasamos al frontend
+--------------------
+Creamos archivo .env con NEXT_PUBLIC_API_URL=http://localhost:8000
+
+index.js viene ya
+
+
+
+
+Intento de despliegue en Docker, en vez de Render y Vercel
+-------------------------------------------------
+Abrimos Docker y ejecutamos docker build -t pdf_image .
+pdf_image para el Docker
+
+
+En requirements hay que quitar librerias pywinpty, pyenv
+Y poner gunicorn y uvicorn[standard] para que funcionen los siguiente comandos:
+Borrar cache: docker builder prune 
+
+Crear Imagen: docker build -t pdf_image .
+
+Ejecutar contenedor:docker run -d -p 8000:8000 pdf_image
+
+Creamos Docker para frontend
+---------------------------
+Ver que codigo se uso en el Dockerfile
+
+En el directorio del frontend ejecutar: docker build -t frontend_image .
+A veces puede dar problemas de versiones pero CHat GPT lo suele solucionar sin que tenga que entrar yo
+
+Luego activar contennedor: docker run -d -p 3000:3000 frontend_image
+
+
+
+Por que quiero aprender Docker?
+--------------------------------
+Sí, puedes crear un archivo Dockerfile para empaquetar tu servidor en un contenedor
+y luego acceder a ese contenedor desde otro dispositivo en la misma red (o incluso desde fuera, dependiendo de cómo configures tu entorno).
+
+
+
+Obteenr direccion IP del contenedor del backend
+----------------------------------------------
+Al final ponemos el id del conetendor del backend: b7072e9fa2ae 
+PS C:\Users\jaime\Escritorio\LLM\36_3_pdf-app-fastapi-vercel-fullstack\002-pdf-vercel-frontend\pdf-app> docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' b7072e9fa2ae          
+Obtendremos 172.17.0.2
+
+Actualizamos la URL del frontend para conectarlos
+
+
+Como da problemas en el servidor backend al ahcer los logs. Haces docker logs [CONTAINER_ID] y si te dan bien los 2 sigues, pero como no hacemos cambios:
+En el archivo .env del backend al no utilizar Docker compose podemos ponber en DATABSE_HOST= direccion Ip del servidor Backend (obtenida) es la 127.17.0.2
+Además vamos a parar los conteendores apra que se actualice bien:
+
+docker stop 8c6c0b09f449
+docker stop b7072e9fa2ae
+
+utilizar docker ps para ver cuales estan activos
+
+
+
+Creamos imagen apra la base de datos tambien
+---------------------------------------------
+docker run --name postgres_container -e POSTGRES_USER=user52 -e POSTGRES_PASSWORD=pass52 -e POSTGRES_DB=mypdfdatabase -p 5432:5432 -d postgres
+Este comando creará un contenedor llamado postgres_container con el usuario user52, la contraseña pass52 y la base de datos mypdfdatabase. Asegúrate de que el puerto 5432 no esté siendo usado por otro servicio en tu máquina.
+
+
+Iniciar postgreSql en Docker?
+-------------------------------
+Desde Powershell
+PS C:\Windows\system32> net start postgresql-x64-16
+
+PS C:\Windows\system32> $env:PGDATA="C:\Program Files\PostgreSQL\16\data"
+PS C:\Windows\system32> pg_ctl status
+pg_ctl: el servidor está en ejecución (PID: 7668)
+C:/Program Files/PostgreSQL/16/bin/postgres.exe "-D" "C:\Program Files\PostgreSQL\16\data"
+
+
+El DATABASE_HOST sera el nombre del contenedor de Postrges porque hay 3 conteendores (PostregeSQL, Backend y Frontend)
+
+docker restart backend
+
+
+
+
+Modificamos TC/ICP Conenctions en C:\Program Files\PostgreSQL\16\data
+------------------------------
+Se encunetran en C:\Program Files\PostgreSQL\16\data
+postgresql.conf debe de estar con: listen_addresses = '*'
+
+pg_hba.conf debe de estar con:
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+
+# "local" is for Unix domain socket connections only
+local   all             all                                     scram-sha-256
+# IPv4 local connections:
+host    all             all             127.0.0.1/32            scram-sha-256
+host    all             all             172.17.0.0/16            md5  # Permite conexiones desde contenedores Docker
+# IPv6 local connections:
+host    all             all             ::1/128                 trust
+# Allow replication connections from localhost, by a user with the
+# replication privilege.
+local   replication     all                                     scram-sha-256
+host    replication     all             127.0.0.1/32            scram-sha-256
+host    replication     all             ::1/128                 scram-sha-256
+
+
+
+
+
+
+
+Creamos nuevo postgres container
+-----------------------------------
+PS C:\Users\jaime\Escritorio\LLM> docker stop postgres_container
+postgres_container
+PS C:\Users\jaime\Escritorio\LLM> docker rm postgres_container
+>>
+postgres_container
+PS C:\Users\jaime\Escritorio\LLM> docker run --name postgres_container -e POSTGRES_PASSWORD=pass52 -e POSTGRES_USER=user52 -e POSTGRES_DB=mypdfdatabase -p 5432:5432 -d postgres 
+
+PROBAR CON DOcker compose porque esto con Dcoker solo NO FUNCIONA!!!!!!!!! Creo que con Docker compose puedo meetr todo en un conteendor y hacer que funcione
+
+
+
+
+
+
+
+
+

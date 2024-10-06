@@ -1,0 +1,47 @@
+Crear Repo, clonar.
+En la carpeta ejecutar npx create-llama@latest
+Escoger No DatSource.
+
+Añadir en env la API de Open Ai
+Fijarse en que no haya cache! Si lo hay borrarlo antes de ejecutar npm run egnerate
+
+Añadir los archivos a data
+ejecutar antes npm install
+Despues npm run generate
+
+Y despues podemos lanzarlo con npm run dev
+
+Lo subimos a Github y hace,mos el import desde Vercel a la app apra que slaga desde ahi.
+
+Para subir a Github git add . git commit -m "Cambios" git push origin main
+
+
+
+Docker lo descargamos pero es para probar en entonos de produccion las apps
+docker build -t <your_app_image_name> .
+
+Generamos base de datos vectorial
+
+docker run \
+  --rm \
+  -v $(pwd)/.env:/app/.env \ # Utiliza el archivo .env de tu sistema de archivos
+  -v $(pwd)/config:/app/config \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/cache:/app/cache \ # Usa tu sistema de archivos para almacenar la base de datos vectorial
+  -p 3000:3000 \ # Mapea el puerto 3000 del contenedor al puerto 3000 de tu máquina
+  <your_app_image_name> \
+  npm run generate
+
+
+Ejecutamos la aplicacion
+  docker run \
+  --rm \
+  -v $(pwd)/.env:/app/.env \
+  -v $(pwd)/config:/app/config \
+  -v $(pwd)/data:/app/data \
+  -v $(pwd)/cache:/app/cache \
+  -p 3000:3000 \
+  <your_app_image_name>
+
+
+Accedemos a la app http://localhost:3000

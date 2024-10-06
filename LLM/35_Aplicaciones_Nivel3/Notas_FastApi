@@ -1,0 +1,11 @@
+ENTORNO VIRTUAL/ACTIVAR FAST API
+-----------------------------------
+Si el entorno virtul esta en un directorio diferente activarlo en la carpeta en la que se encuentre la APP creada con FastAPI. 
+Ejecutar cd C:\Users\jaime\AppData\Local\pypoetry\Cache\virtualenvs\b402-bLnqn39v-py3.11\Scripts
+.\Activate
+y luego ir al directorio que se quiere ejecutar la app: cd C:\Users\jaime\Escritorio\LLM\35_Aplicaciones_Nivel3
+
+Tiene que estar activo el entorno virtual y ejecutar uvicorn main:app --reload (Tieen que salir asi)
+
+Si queremos añadir alguna libreria adicional al entorno virtual lo hacemos con poetry yendo a la carpeta del project.toml y haciendo 
+poetry add uvicorn por ejemplo tendremos la libreria uvicorn instalada

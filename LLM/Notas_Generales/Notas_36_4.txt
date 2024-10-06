@@ -1,0 +1,16 @@
+Activacion entorno
+------------------
+PS C:\Users\jaime\Escritorio\LLM\36_4_langchain-plus-todo-app\001-langchain-fastapi-backend> python -m venv env_36_4          
+PS C:\Users\jaime\Escritorio\LLM\36_4_langchain-plus-todo-app\001-langchain-fastapi-backend> .\env_36_4\Scripts\Activate
+
+Quitamos uvloop y ponemos uvicorn[standard] y gunicorn
+Luego instalamos pip install langchain==0.1.1
+
+
+Venia ya hecho luego ekecutamos  uvicorn main:app --reload
+
+
+
+He instalado alembic pero aprece que no funciona, No se utiliza???
+
+De moemnto lo hemos dejado para avanzar mas con el curso

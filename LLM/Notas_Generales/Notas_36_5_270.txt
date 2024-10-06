@@ -1,0 +1,3 @@
+Pasamos al siguiente. Este utiliza LLM, AWS y demas
+
+Importante, utiliza API de Open AI y AWS

@@ -1,0 +1,31 @@
+Para cuando un proceso esta abierto y no lo encontremos
+
+PS C:\Users\jaime\Escritorio> cd C:\Users\jaime\Escritorio\Handle
+
+PS C:\Users\jaime\Escritorio\Handle> ./handle.exe pgvector
+
+Nthandle v5.0 - Handle viewer
+Copyright (C) 1997-2022 Mark Russinovich
+Sysinternals - www.sysinternals.com
+
+cmd.exe            pid: 16932  type: File           1D4: C:\Users\jaime\AppData\Local\Temp\pgvector
+PS C:\Users\jaime\Escritorio\Handle> Stop-Process -Id 16932 -Force
+PS C:\Users\jaime\Escritorio\Handle> Remove-Item -Recurse -Force C:\Users\jaime\AppData\Local\Temp\pgvector
+
+Tambien podria haberse hecho:
+Get-Process | Out-GridView
+taskkill /F /PID <ID_DEL_PROCESO>
+
+
+
+El problema que tuvimos al instalar pgvector, fue que habia una version de POtsgreSQL que era la 16 que no era compatible (creo) y tuvimos que descargar la 15, ademas desinstalar la 16 y borrar los restos de la 16 en Programa FIles PostgreSQL de la carpeta 16 porque sino se mezcakaban con la 15 y no funconaba
+
+
+Ahora es irse a developer command prompt y ejecutar omo administrador si no lo hciimos antes y ejecutar:
+set "PGROOT=C:\Program Files\PostgreSQL\15"
+nmake /F Makefile.win install
+
+Listo, pgvector instalado.
+
+
+SI instalamos una nueva version de POstrgreSQL 
