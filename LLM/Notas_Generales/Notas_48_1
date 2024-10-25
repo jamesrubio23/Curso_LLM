@@ -40,10 +40,10 @@ Instalamos visual studio instaler para seguir las instrucciones de instaalr pgve
 https://visualstudio.microsoft.com/es/vs/
 
 Despues de moidifciar e instalar la extension de C++
-En una terminal de powershell en vscode ejecutamos:
+En una terminal de developer command prompt como administradr en vscode ejecutamos:
 call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat"
 set "PGROOT=C:\Program Files\PostgreSQL\16"  # Asegúrate de que esta sea la ruta correcta a tu instalación de PostgreSQL
-cd $env:TEMP
+cd $env:TEMP o cd %TEMP% 
 git clone --branch v0.7.4 https://github.com/pgvector/pgvector.git
 cd pgvector
 
@@ -52,6 +52,17 @@ Aparatemente esto no funciona cuando eejcutamos nmake /F Makefile.win
  y luego nmake /F Makefile.win install
 
 Por ello lo ejeuctamos desde la developer Command Prompt
+
+
+PGvector en Developer command prompt
+>call "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
+set "PGROOT=C:\Program Files\PostgreSQL\15"
+>cd %TEMP%
+git clone --branch v0.7.4 https://github.com/pgvector/pgvector.git
+cd pgvector
+nmake /F Makefile.win
+nmake /F Makefile.win install
+
 
 
 
